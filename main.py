@@ -34,9 +34,13 @@ def get_images(args):
     if args['file'] == "all":
         file_list = os.listdir('images')
         for file_name in file_list[:]:
-            if file_name.endswith(".bmp"):
+            if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
                 file_names.append('images/' + file_name)
     else:
+        if not os.path.exists(args['file']):
+            raise Exception("\033[1m" + "[ERROR] -> File not existing" + "\033[0m")
+        if not args['file'].lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
+            raise Exception("\033[1m" + "[ERROR] -> File is not an image" + "\033[0m")
         file_names.append(args['file'])
 
     return file_names
@@ -44,23 +48,18 @@ def get_images(args):
 
 # Not my function -> getting kernel used in top-hat
 def estructurant(radius):
-    kernel = np.zeros((2*radius+1, 2*radius+1), np.uint8)
-    y,x = np.ogrid[-radius:radius+1, -radius:radius+1]
-    mask = x**2 + y**2 <= radius**2
+    kernel = np.zeros((2 * radius + 1, 2 * radius + 1), np.uint8)
+    y, x = np.ogrid[-radius:radius + 1, -radius:radius + 1]
+    mask = x ** 2 + y ** 2 <= radius ** 2
     kernel[mask] = 1
     kernel[0, radius-1:kernel.shape[1]-radius+1] = 1
-    kernel[kernel.shape[0]-1, radius-1:kernel.shape[1]-radius+1]= 1
-    kernel[radius-1:kernel.shape[0]-radius+1, 0] = 1
-    kernel[radius-1:kernel.shape[0]-radius+1, kernel.shape[1]-1] = 1
+    kernel[kernel.shape[0] - 1, radius - 1:kernel.shape[1] - radius + 1] = 1
+    kernel[radius - 1:kernel.shape[0]-radius + 1, 0] = 1
+    kernel[radius - 1:kernel.shape[0]-radius + 1, kernel.shape[1]-1] = 1
     return kernel
 
 
 def get_names_image(image_path):
-    if not os.path.exists(image_path):
-        raise Exception("\033[1m" + "[ERROR] -> File not existing" + "\033[0m")
-    if not image_path.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
-        raise Exception("\033[1m" + "[ERROR] -> File is not an image" + "\033[0m")
-
     split = os.path.splitext(image_path)
     name = split[-2].split("/")[-1]
     image_ext = split[-1][1:]
@@ -98,13 +97,13 @@ def get_largest_component(image):
     labeled_array, numpatches = scipy.ndimage.label(image, s)
     sizes = scipy.ndimage.sum(image, labeled_array, range(1, numpatches + 1))
     max_label = np.where(sizes == sizes.max())[0] + 1
-    return np.asarray(labeled_array == max_label, np.uint8)
+    biggest_stain = np.asarray(labeled_array == max_label, np.uint8)
+    biggest_stain[biggest_stain > 0] = 255
+    return biggest_stain
 
 
 def drawContourAndShowImage(biggest_stain, default_image):
     contours, hierarchy = cv2.findContours(biggest_stain, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    flex_contour_img = cv2.drawContours(default_image.copy(), contours, 0, (255, 0, 255), 3)
 
     (x, y, w, h) = cv2.boundingRect(contours[0])
 
@@ -127,12 +126,12 @@ def drawContourAndShowImage(biggest_stain, default_image):
 
     square_contour_img = cv2.rectangle(square_contour_img, (x, y), (x + w, y + h), (47, 61, 226), 4)
 
-    return square_contour_img, flex_contour_img, [x, y, w, h]
+    return square_contour_img, [x, y, w, h]
 
 
-def draw_groundtruth(square_contour_img, roi, gt_roi, draw_square=True):
+def draw_groundtruth(square_contour_img, roi, gt_roi, show):
 
-    if draw_square:
+    if show in ["groundtruth", "detail"]:
         square_contour_img = cv2.rectangle(square_contour_img, (gt_roi[0], gt_roi[1]), (gt_roi[0] + gt_roi[2], gt_roi[1] + gt_roi[3]), (78, 255, 97), 1)
 
     x = roi[0]
@@ -152,17 +151,18 @@ def draw_groundtruth(square_contour_img, roi, gt_roi, draw_square=True):
     poly_2 = Polygon(box_2)
     iou = poly_1.intersection(poly_2).area / poly_1.union(poly_2).area
 
-    square_contour_img = cv2.putText(square_contour_img, "IOU = " + str(round(iou, 3)) + "%", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (47, 61, 226), 2, cv2.LINE_AA)
+    if show in ["confidence", "groundtruth", "detail"]:
+        square_contour_img = cv2.putText(square_contour_img, "IOU = " + str(round(iou, 3)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (47, 61, 226), 2, cv2.LINE_AA)
 
     return square_contour_img
 
 
-def show_result(kernel_size, tophat_img, black_and_white, biggest_stain, square_contour_img, flex_contour_img, display_all=False):
+def show_result(kernel_size, tophat_img, black_and_white, biggest_stain, square_contour_img, show):
     window_name = "File : " + str(kernel_size)
     cv2.namedWindow(window_name)
     cv2.moveWindow(window_name, 0, 30)
 
-    if display_all:
+    if show in ["detail"]:
         tmp_1 = cv2.hconcat((cv2.cvtColor(tophat_img, cv2.COLOR_GRAY2RGB), cv2.cvtColor(black_and_white, cv2.COLOR_GRAY2RGB)))
         tmp_2 = cv2.hconcat((cv2.cvtColor(biggest_stain, cv2.COLOR_GRAY2RGB), square_contour_img))
         final_img = cv2.vconcat((tmp_1, tmp_2))
@@ -178,12 +178,14 @@ def get_arguments():
     ap = argparse.ArgumentParser()
 
     ap.add_argument("-f", "--file", required=True, help="path of the data file")
-    ap.add_argument("-sa", "--show_all", required=False, help="show all steps and not only the result", default=False)
+    ap.add_argument("-s", "--show", required=False, help="what image will be display : \"result\" - \"confidence\" - \"groundtruth\" - \"detail\"", default="result")
     return vars(ap.parse_args())
 
 
 def main():
     args = get_arguments()
+    if args["show"] not in ["result", "confidence", "groundtruth", "detail"]:
+        raise Exception("\033[1m" + "[ERROR] -> Show parameter is not good, should be : result, confidence, groundtruth or detail" + "\033[0m")
     file_names = get_images(args)
     kernel_size = 53    # 41, 53 working fine
 
@@ -193,15 +195,13 @@ def main():
         black_and_white = getBlackAndWhite(tophat_img)
 
         biggest_stain = get_largest_component(black_and_white)
-        biggest_stain[biggest_stain > 0] = 255
 
-        square_contour_img, flex_contour_img, roi = drawContourAndShowImage(biggest_stain, image)
+        square_contour_img, roi = drawContourAndShowImage(biggest_stain, image)
 
         gt_roi = get_ground_truth_roi(file_name)
-        square_contour_img = draw_groundtruth(square_contour_img, roi, gt_roi, True)
+        square_contour_img = draw_groundtruth(square_contour_img, roi, gt_roi, args["show"])
 
-
-        show_result(kernel_size, tophat_img, black_and_white, biggest_stain, square_contour_img, flex_contour_img, args["show_all"])
+        show_result(kernel_size, tophat_img, black_and_white, biggest_stain, square_contour_img, args["show"])
 
 
 # Main body

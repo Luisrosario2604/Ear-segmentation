@@ -24,14 +24,31 @@ If you want to see the result of a specific image
 $ python main.py --file=images_rename/10.bmp
 ```
 
-If you want to see the result of all images
+If you want to see the result of all images (located in images/ folder)
 ```bash
 $ python main.py --file=all
 ```
 
-If you want to see all the steps of all images (works also with one image)
+You can also add the "show" parameter to see other results
+
+Show can be equal to : "result", "confidence", "groundtruth", "detail"
 ```bash
-$ python main.py --file=all -sa=True
+$ python main.py --file=all --show=result
+$ python main.py --file=all --show=confidence
+$ python main.py --file=all --show=groundtruth
+$ python main.py --file=all --show=detail
+```
+
+## Usage of grountruth_generator.py
+
+If you want to generate the JSON of a specific image (result saved in groundtruth/ folder)
+```bash
+$ python groundtruth_generator.py -f=images_rename/10.bmp
+```
+
+If you want to generate the JSON of all images (located in images/ folder)
+```bash
+$ python groundtruth_generator.py -f=all
 ```
 
 ## Structure
