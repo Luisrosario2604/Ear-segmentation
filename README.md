@@ -1,44 +1,55 @@
-# Blank-Python-Project
+# Practice 2: Accurate segmentation of the ear image
 
-The goal of the project is to get a python3 template
-
-## Goals
-
-- Make a good README.md
-- Make a main.py skeleton
-- Have a .gitignore
+The aim of this practice is to achieve an accurate segmentation of this feature. That is, as close to the ear region as possible without losing information from the facial region.
 
 ## Requirements
 
 * Python 3.7+
 
+* numpy == 1.21.3
+* opencv_python == 4.5.3.56
+* scipy == 1.7.1
+* Shapely == 1.8.1.post1
 
-* APackage >= 2.0.0
 
 How to install all the requirements :
 ```bash
 $ pip install -r requirements.txt
 ```
 
-## Usage
+## Usage of main.py
 
+If you want to see the result of a specific image
 ```bash
-$ python main.py
+$ python main.py --file=images_rename/10.bmp
+```
+
+If you want to see the result of all images
+```bash
+$ python main.py --file=all
+```
+
+If you want to see all the steps of all images (works also with one image)
+```bash
+$ python main.py --file=all -sa=True
 ```
 
 ## Structure
 
     .
     ├── main.py
-    ├── exemple_of_folder       # Documentation files (alternatively `doc`)
-    │   ├── TOC.md              # Table of contents
-    │   ├── faq.md              # Frequently asked questions
-    │   ├── misc.md             # Miscellaneous information
-    │   ├── usage.md            # Getting started guide
-    │   └── ...                 # etc.
-    ├── .gitignore
-    └── README.md
+    ├── groundtruth_generator.py
+    │
+    │    
+    ├── groundtruth/
+    │   └── *.json
+    ├── images/
+    │   └── *.bmp
+    │
+    ├── README.md
+    └── requirements.txt
 
 ## Authors
 
 * **Luis Rosario** - *Initial work* - [Luisrosario2604](https://github.com/Luisrosario2604)
+* **Vicente Gilabert** - *Initial work* - [vgilabert94](https://github.com/vgilabert94)
