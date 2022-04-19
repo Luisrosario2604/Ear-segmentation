@@ -21,7 +21,7 @@ $ pip install -r requirements.txt
 
 If you want to see the result of a specific image
 ```bash
-$ python main.py --file=images_rename/10.bmp
+$ python main.py --file=images/10.bmp
 ```
 
 If you want to see the result of all images (located in images/ folder)
@@ -43,7 +43,7 @@ $ python main.py --file=all --show=detail
 
 If you want to generate the JSON of a specific image (result saved in groundtruth/ folder)
 ```bash
-$ python groundtruth_generator.py -f=images_rename/10.bmp
+$ python groundtruth_generator.py -f=images/10.bmp
 ```
 
 If you want to generate the JSON of all images (located in images/ folder)
