@@ -52,7 +52,7 @@ def get_images(args):
         file_list = os.listdir('images')
         for file_path in file_list[:]:
             if file_path.endswith(".bmp"):
-                files_paths.append('images/' + file_path)
+                files_paths.append('data/' + file_path)
     else:
         files_paths.append(args['file'])
 

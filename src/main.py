@@ -32,10 +32,10 @@ def open_image(file_name):
 def get_images(args):
     file_names = []
     if args['file'] == "all":
-        file_list = os.listdir('images')
+        file_list = os.listdir('data')
         for file_name in file_list[:]:
             if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
-                file_names.append('images/' + file_name)
+                file_names.append('data/' + file_name)
     else:
         if not os.path.exists(args['file']):
             raise Exception("\033[1m" + "[ERROR] -> File not existing" + "\033[0m")
