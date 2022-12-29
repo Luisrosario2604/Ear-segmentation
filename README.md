@@ -1,5 +1,7 @@
 # Accurate segmentation of the ear image
 
+#### 👨‍🎓 This project was carried out during my master's degree in computer vision at URJC - Madrid 
+
 The aim of this practice is to achieve an accurate segmentation of this feature. That is, as close to the ear region as possible without losing information from the facial region.
 
 ## Requirements
